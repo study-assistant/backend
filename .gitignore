@@ -2,6 +2,9 @@
 elysia/ingestion/scraper/links.csv
 data/raw
 
+# Preprocessed data
+data/preprocessed
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
