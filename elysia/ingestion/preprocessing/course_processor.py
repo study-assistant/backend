@@ -4,11 +4,9 @@ import json
 from workspace import create_course_workspace
 from pdf_extractor import extract_pdf
 from text_cleaner import clean_pages
+from text_normalizer import normalize_pages
 from storage import save_json
-
-### Raised when a course cannot be processed
-class CourseProcessingError(Exception):
-    pass
+from model import CourseProcessingError
 
 def process_course(course_dir: Path) -> None:
     if not course_dir.exists():
@@ -102,10 +100,11 @@ def process_document(
 
     pdf_pages = extract_pdf(pdf_path)
     cleaned_pages = clean_pages(pdf_pages)
+    normalized_pages = normalize_pages(cleaned_pages)
 
     save_processed_document(
         pdf_path=pdf_path,
-        cleaned_pages=cleaned_pages,
+        processed_pages=normalized_pages,
         processed_course_dir=processed_course_dir,
         document=document,
         page_data=page_data,
@@ -113,7 +112,7 @@ def process_document(
 
 def save_processed_document(
     pdf_path: Path, 
-    cleaned_pages, 
+    processed_pages, 
     processed_course_dir: Path,
     document: dict,
     page_data: dict):
@@ -139,7 +138,7 @@ def save_processed_document(
     
     data = {
         "metadata": metadata,
-        "pages": [page.to_json() for page in cleaned_pages]
+        "pages": [page.to_json() for page in processed_pages]
     }
 
     output_path = save_json(

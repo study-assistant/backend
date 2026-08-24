@@ -1,31 +1,13 @@
-from dataclasses import dataclass
-from typing import Dict, Any
 import re
 
-from pdf_extractor import ExtractedPage
-
-### Raised when text cleaning fails
-class TextCleaningError(Exception):
-    pass
-
-### Cleaned text extracted from a single PDF page
-@dataclass
-class CleanedPage:
-    page_number: int
-    text: str
-
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "text": self.text,
-        }
+from model import CleanedPage, TextCleaningError
+from model import ExtractedPage
 
 # Clean extracted PDF pages. The meaning and structure of the original text should be preserved. 
 # Cleaning includes:
 # - removing repeated headers and footers
 # - removing page numbers
 # - fixing hyphenation caused by line breaks
-# - normalizing whitespace
 # - removing unnecessary empty lines
 def clean_pages(pages: list[ExtractedPage]) -> list[CleanedPage]:
     if not pages:
@@ -41,11 +23,11 @@ def clean_pages(pages: list[ExtractedPage]) -> list[CleanedPage]:
 
             text = _remove_repeated_lines(text, repeated_lines)
 
+            text = _remove_repeated_slide_titles(text)
+
             text = _remove_page_numbers(text)
 
             text = _fix_hyphenation(text)
-
-            text = _normalize_whitespace(text)
 
             cleaned_pages.append(
                 CleanedPage(
@@ -74,7 +56,7 @@ def _find_repeated_lines(
         lines_on_page = set()
 
         for line in page.text.splitlines():
-            line = line.strip()
+            line = line.rstrip()
 
             if not line:
                 continue
@@ -113,10 +95,57 @@ def _remove_repeated_lines(
 
 ### Normalize a line for comparison with other lines
 def _normalize_line_for_comparison(line: str) -> str:
-    line = line.strip()
+    line = line.rstrip()
     line = re.sub(r"\s+", " ", line)
 
     return line.lower()
+
+
+### Some pdf can have multiple slides on one page - in that case we make sure that header and footer as well as page number is recognized for every slide on page
+def _remove_repeated_slide_titles(text: str) -> str:
+    lines = text.splitlines()
+
+    # Map title -> slide numbers found on this PDF page.
+    title_numbers: dict[str, set[int]] = {}
+
+    for line in lines:
+        match = re.match(r"^(.*?)\s+(\d+)\s*$", line.strip())
+
+        if not match:
+            continue
+
+        title = match.group(1).strip()
+        number = int(match.group(2))
+
+        if not title:
+            continue
+
+        normalized_title = _normalize_line_for_comparison(title)
+
+        title_numbers.setdefault(normalized_title, set()).add(number)
+
+    # A title appearing with multiple different numbers on the same PDF page is likely a repeated slide header
+    repeated_slide_titles = {
+        title
+        for title, numbers in title_numbers.items()
+        if len(numbers) >= 2
+    }
+
+    cleaned_lines = []
+
+    for line in lines:
+        match = re.match(r"^(.*?)\s+(\d+)\s*$", line.strip())
+
+        if match:
+            title = match.group(1).strip()
+            normalized_title = _normalize_line_for_comparison(title)
+
+            if normalized_title in repeated_slide_titles:
+                continue
+
+        cleaned_lines.append(line)
+
+    return "\n".join(cleaned_lines)
 
 
 ### Remove lines that contain only a page number
@@ -124,7 +153,7 @@ def _remove_page_numbers(text: str) -> str:
     lines = []
 
     for line in text.splitlines():
-        stripped = line.strip()
+        stripped = line.rstrip()
 
         if re.fullmatch(r"\d+", stripped):
             continue
@@ -153,36 +182,9 @@ def _fix_hyphenation(text: str) -> str:
         r"\1\2",
         text
     )
-
-
-### Normalize whitespace while preserving paragraph breaks
-def _normalize_whitespace(text: str) -> str:
-    # Remove trailing/leading whitespace from lines.
-    lines = [
-        line.strip()
-        for line in text.splitlines()
-    ]
-
-    # Remove empty lines at the beginning/end.
-    while lines and not lines[0]:
-        lines.pop(0)
-
-    while lines and not lines[-1]:
-        lines.pop()
-
-    # Replace multiple consecutive empty lines with one.
-    normalized_lines = []
-    previous_empty = False
-
-    for line in lines:
-        if not line:
-            if previous_empty:
-                continue
-
-            previous_empty = True
-            normalized_lines.append("")
-        else:
-            previous_empty = False
-            normalized_lines.append(line)
-
-    return "\n".join(normalized_lines)
+# def _fix_hyphenation(text: str) -> str:
+#     return re.sub(
+#         r"(\w)-\n\s*(\w)",
+#         r"\1\2",
+#         text
+#     )

@@ -1,25 +1,7 @@
-
-from dataclasses import dataclass
-from typing import Dict, Any
 from pathlib import Path
 import pymupdf
 
-### Raised when text cannot be extracted from a PDF
-class PDFExtractionError(Exception):
-    pass
-
-### Text extracted from a single PDF page
-@dataclass
-class ExtractedPage:
-    page_number: int
-    text: str
-
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "text": self.text,
-        }
-    
+from model import ExtractedPage, PDFExtractionError  
 
 # Extract text from a PDF document page by page. The extracted text is returned without any cleaning or modification.
 def extract_pdf(pdf_path: Path) -> list[ExtractedPage]:
