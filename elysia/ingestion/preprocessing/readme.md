@@ -4,6 +4,22 @@ The preprocessing module is responsible for transforming the raw course material
 
 The preprocessing pipeline follows the **Single Responsibility Principle (SRP)**, where each component performs one well-defined task. This makes the pipeline easier to maintain, test, and extend.
 
+The preprocessing stage preserves important information from the original PDF, such as:
+
+* page numbers
+* block boundaries
+* line boundaries
+* text spans
+* bounding boxes
+* font information
+* document structure
+* mathematical notation
+* code formatting
+* tables
+* images
+
+This information can later be used to create better chunks and improve retrieval quality.
+
 ---
 
 ## Pipeline Overview
@@ -21,6 +37,9 @@ Page Processor
 PDF Extractor
     │
     ▼
+Structure Detector
+    │
+    ▼
 Text Cleaner
     │
     ▼
@@ -29,8 +48,17 @@ Text Normalizer
     ▼
 Preprocessed Documents
 ```
+The preprocessing pipeline is divided into several stages.
 
-The output of this module is a collection of cleaned documents stored in the `data/preprocessed/` directory. These documents serve as the input for the chunking and embedding stages of the ingestion pipeline.
+The PDF extractor preserves information from the original PDF instead of immediately reducing everything to plain text.
+
+The structure detector identifies logical document structures such as headings, lists, code, equations, tables, and images.
+
+The text cleaner removes artifacts introduced by the PDF layout.
+
+The text normalizer performs conservative normalization while preserving meaningful formatting and structure.
+
+The output of this module is a collection of structured and normalized documents stored in the `data/preprocessed/` directory. These documents serve as the input for the chunking and embedding stages of the ingestion pipeline.
 
 ---
 
@@ -43,6 +71,7 @@ preprocessing/
 ├── storage.py
 ├── model.py
 ├── pdf_extractor.py
+├── structure_detection.py
 ├── text_cleaner.py
 ├── text_normalizer.py
 ├── course_processor.py
@@ -58,9 +87,10 @@ preprocessing/
 | `workspace.py`                     | Paths and directories   |
 | `storage.py`                       | Persistence layer       |
 | `model.py`                         | Data models and processing errors  |
-| `pdf_extractor.py`                 | PDF → raw text          |
-| `text_cleaner.py`                  | Raw text → clean text   |
-| `text_normalizer.py`               |  Clean text → normalized text  |
+| `pdf_extractor.py`                 | PDF → structured raw representation          |
+| `structure_detection.py`                 | Detect document structure          |
+| `text_cleaner.py`                  | Remove PDF-specific artifacts   |
+| `text_normalizer.py`               | Normalize extracted text  |
 | `course_processor.py`              | Process one course      |
 | `pipeline.py`                      | Orchestrate all courses |
 
@@ -98,30 +128,92 @@ Responsibilities:
 * Representing the different stages of text processing
 * Defining processing-specific exceptions
 
-Current models:
+<br>
 
-* **`ExtractedPage`**
-    * Represents text extracted directly from a single PDF page.
-    * `PDF → ExtractedPage`
-    * Fields: `page_number`, `text`
+The models are divided into four groups:
+
+1. **Extraction models**
+2. **Structure detection models**
+3. **Cleaning models**
+4. **Normalization models**
+
+**1. Extraction models**
+
+Extraction models represent the information obtained directly from the PDF while preserving relevant layout and formatting information.
+
+The extraction hierarchy is:
+
+```
+ExtractedPage
+    │
+    └── ExtractedBlock
+            │
+            └── ExtractedLine
+                    │
+                    └── ExtractedSpan
+```
+These models preserve information such as text, page dimensions, bounding boxes, and font information that can be used by later preprocessing stages.
+
+
+**2. Structure detection models**
+
+Structure detection models represent the semantic type assigned to extracted content.
+
+Supported block types include:
+* paragraph
+* heading
+* list
+* code
+* equation
+* table
+* image
+
+`StructuredPage` and `StructuredBlock` preserve the detected structure together with the original extracted information.
+
+**3. Cleaning models**
+
+Cleaning models represent content after PDF-specific artifacts have been removed while preserving the detected document structure.
+
+`StructuredPage → CleanedPage`
+
+
+**4. Normalization models**
+
+Normalization models represent content after conservative normalization has been applied.
+
+The goal is to make the text representation consistent while preserving its meaning and important document structure.
+
+`CleanedPage → NormalizedBlock`
+
 
 <br>
 
-* **`CleanedPage`**
-    * Represents text after PDF-specific artifacts have been removed.
-    * `ExtractedPage → CleanedPage`
-    * Fields: `page_number`, `text`
+The overall model flow is:
+```
+PDF
+ │
+ ▼
+Extraction - What is on the page?
+ │
+ ▼
+Structure Detection - What kind of thing is it?
+ │
+ ▼
+Cleaning - Remove obvious unwanted artifacts.
+ │
+ ▼
+Normalization - Make representation consistent without changing meaning.
+ │
+ ▼
+Chunking - How should related content be grouped?
+```
 
 <br>
-
-* **`NormalizedPage`**
-    * Represents cleaned text after normalization.
-    * `CleanedPage → NormalizedPage`
-    * Fields: `page_number`, `text`
 
 Processing errors:
 
 * `PDFExtractionError` — raised when PDF text extraction fails
+* `StructureDetectionError` — raised when structure detection fails
 * `TextCleaningError` — raised when text cleaning fails
 * `TextNormalizationError` — raised when text normalization fails
 * `CourseProcessingError` — raised when a course cannot be processed
@@ -130,24 +222,78 @@ Processing errors:
 
 ### `pdf_extractor.py`
 
-Extracts text from PDF documents.
+Extracts information from PDF documents using PyMuPDF.
 
 Responsibilities:
 
 * Open PDF files
-* Extract text page by page
-* Preserve page-level information
-* Return the extracted text without modifying it
+* Extract pages
+* Extract PDF blocks
+* Extract lines
+* Extract text spans
+* Preserve bounding boxes
+* Preserve font information
+* Preserve image blocks
+* Preserve the original PDF layout information
 
-This component **does not**:
+The extractor intentionally performs minimal modification to the extracted content.
 
-* remove headers
-* remove footers
-* clean formatting
-* perform chunking
-* generate embeddings
+The extraction stage produces a rich representation instead of immediately converting the PDF into plain text.
+```
+PDF
+ │
+ ▼
+ExtractedPage
+ │
+ ├── ExtractedBlock
+ │      │
+ │      ├── ExtractedLine
+ │      │      │
+ │      │      └── ExtractedSpan
+ │      │
+ │      └── ...
+ │
+ └── ...
+```
+Its primary responsibility is preserving the information contained in the PDF during extraction. This information is particularly important for later detection of:
 
-Its only responsibility is text extraction.
+* headings
+* lists
+* code
+* equations
+* tables
+* images
+
+
+---
+
+### `structure_detection.py`
+Detects the semantic structure of extracted PDF blocks.
+
+The detector uses rule-based heuristics based on information preserved during PDF extraction.
+
+Current block types:
+* PARAGRAPH
+* HEADING
+* LIST
+* CODE
+* EQUATION
+* TABLE
+* IMAGE
+
+Each detected block receives a confidence score.
+
+Current detection approaches include:
+
+* Images — detected using the original PDF block type
+* Headings — detected using font size, bold formatting, line count, and text characteristics
+* Lists — detected using common bullet, numbered, lettered, and Roman numeral markers
+* Code — detected using formatting, indentation, font information, and code-like text characteristics
+* Equations — detected using mathematical symbols, equation structure, and mathematical notation
+* Tables — detected using multiple lines, column positions, and repeated column structures
+* Paragraphs — used as the default classification when no stronger structure is detected
+
+The structure detector is intentionally rule-based so that the behavior can be inspected, tested, and refined using the actual course materials.
 
 ---
 
@@ -247,6 +393,50 @@ These cleaned documents become the input for the next stage of the ingestion pip
 
 ---
 
+## Processing Data Flow
+
+The internal representation becomes progressively more structured throughout the preprocessing pipeline:
+```
+PDF
+ │
+ ▼
+ExtractedPage
+ │
+ ├── ExtractedBlock
+ │      │
+ │      ├── ExtractedLine
+ │      │      │
+ │      │      └── ExtractedSpan
+ │      │
+ │      └── ...
+ │
+ ▼
+StructuredPage
+ │
+ ├── StructuredBlock
+ │      │
+ │      ├── HEADING
+ │      ├── PARAGRAPH
+ │      ├── LIST
+ │      ├── CODE
+ │      ├── EQUATION
+ │      ├── TABLE
+ │      └── IMAGE
+ │
+ ▼
+Cleaned / Normalized Document
+ │
+ ▼
+Chunking
+ │
+ ▼
+Embeddings
+```
+The important principle is that information should be preserved for as long as possible.
+
+Instead of discarding layout information during PDF extraction, later stages decide which information is useful for cleaning, structure detection, chunking, and retrieval.
+---
+
 ## Future Pipeline
 
 The preprocessing module is only one stage of the complete ingestion workflow.
@@ -261,7 +451,13 @@ Scraper
 Raw Data
         │
         ▼
-Preprocessing
+PDF Extraction
+        │
+        ▼
+Structure Detection
+        │
+        ▼
+Cleaning & Normalization
         │
         ▼
 Chunking
