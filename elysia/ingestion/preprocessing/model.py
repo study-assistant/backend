@@ -236,17 +236,20 @@ class StructuredPage:
 ### CLEANING MODELS
 @dataclass
 class CleanedBlock:
-    block_type: str
+    block_type: BlockType
     text: str
-    bbox: tuple[float, float, float, float]
+    table: TableStructure | None = None
 
     def to_json(self) -> dict[str, Any]:
-        return {
-            "block_type": self.block_type,
+        data = {
+            "block_type": self.block_type.value,
             "text": self.text,
-            "bbox": self.bbox,
         }
 
+        if self.table is not None:
+            data["table"] = self.table.to_json()
+
+        return data
 
 @dataclass
 class CleanedPage_V1:
