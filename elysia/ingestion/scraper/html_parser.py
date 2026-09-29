@@ -596,10 +596,25 @@ def extract_description_and_instructor(soup):
     return text, instructor
 
 def extract_transcript_pdf(soup):
+    # 1. Standard case: <a href="...pdf">Download transcript</a>
     for a in soup.select("a[href$='.pdf']"):
-        text = a.get_text(strip=True).lower()
+        text = a.get_text(" ", strip=True).lower()
         if "transcript" in text:
             return urljoin(BASE_URL, a["href"])
+
+    # 2. Language-selection case: <a href="...pdf" ...>English</a>
+    for a in soup.select("a[href$='.pdf']"):
+        text = a.get_text(" ", strip=True).lower()
+        if text == "english":
+            return urljoin(BASE_URL, a["href"])
+
+    # 3. Fallback: data-transcriptlink="...pdf"
+    player = soup.select_one("[data-transcriptlink]")
+    if player:
+        transcript_link = player.get("data-transcriptlink")
+        if transcript_link:
+            return urljoin(BASE_URL, transcript_link)
+
     return None
 
 def extract_youtube_link(soup):
