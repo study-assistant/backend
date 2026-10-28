@@ -300,14 +300,14 @@ def _clean_block(block: StructuredBlock) -> CleanedBlock | None:
     match block_type:
         ### Image blocks might be used later in OCR for some scanned documents
         case BlockType.IMAGE:
-            return CleanedBlock(block_type=block_type, text="")
+            return CleanedBlock(block_type=block_type, bbox=block.bbox, text="")
 
         ### text types: HEADING, LIST, PARAGRAPH
         case BlockType.HEADING | BlockType.PARAGRAPH | BlockType.LIST:
             text = _clean_text(_retrieve_block_text(block))
             if not text:
                 return None
-            return CleanedBlock(block_type=block_type, text=text)
+            return CleanedBlock(block_type=block_type, bbox=block.bbox, text=text)
 
         case BlockType.CODE:
             return _reconstruct_code_block_text_with_indentation(block)
@@ -536,6 +536,7 @@ def _reconstruct_code_block_text_with_indentation(
     if not block.lines:
         return CleanedBlock(
             block_type=block.block_type,
+            bbox=block.bbox,
             text="",
         )
 
@@ -562,6 +563,7 @@ def _reconstruct_code_block_text_with_indentation(
     if base_x is None:
         return CleanedBlock(
             block_type=block.block_type,
+            bbox=block.bbox,
             text="",
         )
 
@@ -581,6 +583,7 @@ def _reconstruct_code_block_text_with_indentation(
 
     return CleanedBlock(
         block_type=block.block_type,
+        bbox=block.bbox,
         text=text,
     )
 
@@ -630,6 +633,7 @@ def _clean_table_block(block: StructuredBlock) -> CleanedBlock | None:
     return CleanedBlock(
         block_type=BlockType.TABLE,
         text=text,
+        bbox=block.bbox,
         table=table,
     )
 

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 
 from typing import Any
 from enum import Enum
@@ -198,11 +198,13 @@ class StructuredPage:
 class CleanedBlock:
     block_type: BlockType
     text: str
+    bbox: tuple[float, float, float, float] | None = None
     table: TableStructure | None = None
 
     def to_json(self) -> dict[str, Any]:
         data = {
             "block_type": self.block_type.value,
+            "bbox": self.bbox,
             "text": self.text,
         }
 
@@ -237,36 +239,6 @@ class CleanedPage:
 #            ├── bbox
 #            └── metadata
 @dataclass
-class NormalizedBlock:
-    block_type: BlockType
-    text: str
-    bbox: tuple[float, float, float, float] | None = None
-    # metadata: dict[str, Any] = field(default_factory=dict)
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "block_type": self.block_type.value,
-            "text": self.text,
-            "bbox": self.bbox,
-            # "metadata": self.metadata,
-        }
-
-@dataclass
-class NormalizedPage:
-    page_number: int
-    blocks: list[NormalizedBlock]
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "blocks": [
-                block.to_json()
-                for block in self.blocks
-            ],
-        }
-
-
-@dataclass
 class DocumentMetadata:
     document_id: str
     course: str
@@ -295,8 +267,35 @@ class DocumentMetadata:
             "description": self.description,
         }
 
-    # def to_json(self) -> dict[str, Any]:
-    #     return asdict(self)
+
+@dataclass
+class NormalizedBlock:
+    block_type: BlockType
+    text: str
+    bbox: tuple[float, float, float, float] | None = None
+    # metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "block_type": self.block_type.value,
+            "text": self.text,
+            "bbox": self.bbox,
+            # "metadata": self.metadata,
+        }
+
+@dataclass
+class NormalizedPage:
+    page_number: int
+    blocks: list[NormalizedBlock]
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "page_number": self.page_number,
+            "blocks": [
+                block.to_json()
+                for block in self.blocks
+            ],
+        }
 
 @dataclass
 class NormalizedDocument:

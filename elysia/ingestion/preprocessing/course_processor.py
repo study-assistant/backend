@@ -131,7 +131,7 @@ def save_processed_document(
     )
     
     data = {
-        "metadata": metadata,
+        "metadata": metadata.to_json(),
         "pages": [page.to_json() for page in processed_pages]
     }
 

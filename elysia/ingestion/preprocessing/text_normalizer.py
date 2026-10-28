@@ -56,7 +56,7 @@ def _normalize_block(block: CleanedBlock) -> NormalizedBlock | None:
             text = _normalize_text(block.text)
             if not text:
                 return None
-            return NormalizedBlock(block_type=block_type, text=text)
+            return NormalizedBlock(block_type=block_type, bbox=block.bbox, text=text)
         
         # case BlockType.CODE: # TODO
         #     return 
@@ -72,7 +72,7 @@ def _normalize_block(block: CleanedBlock) -> NormalizedBlock | None:
             text = block.text
             if not text.strip():
                 return None
-            return NormalizedBlock(block_type=block_type, text=text)
+            return NormalizedBlock(block_type=block_type, bbox=block.bbox, text=text)
 
 # normalize Unicode characters 
 # normalize strange PDF characters such as \u0002 
