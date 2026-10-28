@@ -2,13 +2,13 @@ import re
 from collections import Counter
 
 from model import (
-    ExtractedBlock,ExtractedPage_V1,
+    ExtractedBlock,ExtractedPage,
     BlockType, StructuredBlock, StructuredPage,
     StructureDetectionError
 )
 
 def detect_structure(
-    pages: list[ExtractedPage_V1],
+    pages: list[ExtractedPage],
 ) -> list[StructuredPage]:
 
     if not pages:
@@ -104,7 +104,7 @@ def _classify_block(
 ######################################################################
 ########################## HEADING DETECTION #########################
 def _get_dominant_font_size(
-    page: ExtractedPage_V1,
+    page: ExtractedPage,
 ) -> float:
 
     font_sizes = []

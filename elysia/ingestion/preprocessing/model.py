@@ -1,49 +1,8 @@
 from dataclasses import dataclass, field, asdict
 
-from typing import Dict, Any
+from typing import Any
 from enum import Enum
 
-##### OLD MODELS #####
-### Text extracted from a single PDF page
-@dataclass
-class ExtractedPage:
-    page_number: int
-    text: str
-
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "text": self.text,
-        }
-
-### Cleaned text extracted from a single PDF page
-@dataclass
-class CleanedPage:
-    page_number: int
-    text: str
-
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "text": self.text,
-        }
-
-### Normalized text
-@dataclass
-class NormalizedPage:
-    page_number: int
-    text: str
-
-    def to_json(self) -> Dict[str, Any]:
-        return {
-            "page_number": self.page_number,
-            "text": self.text,
-        }
-
-
-##############
-### MODELS ###
-##############
 ### EXTRACTION MODELS
 # In this stage we don't have clean text data, but structural data that contain a lot of PDF details we will deal with later
 # A span is the smallest text unit returned by PyMuPDF.
@@ -144,7 +103,7 @@ class ExtractedBlock:
 
 # Structured representation of a single extracted PDF page.
 @dataclass
-class ExtractedPage_V1:
+class ExtractedPage:
     page_number: int
     width: float
     height: float
@@ -253,7 +212,7 @@ class CleanedBlock:
         return data
 
 @dataclass
-class CleanedPage_V1:
+class CleanedPage:
     page_number: int
     blocks: list[CleanedBlock]
 
@@ -278,7 +237,7 @@ class CleanedPage_V1:
 #            ├── bbox
 #            └── metadata
 @dataclass
-class NormalizedBlock_V1:
+class NormalizedBlock:
     block_type: BlockType
     text: str
     bbox: tuple[float, float, float, float] | None = None
@@ -293,9 +252,9 @@ class NormalizedBlock_V1:
         }
 
 @dataclass
-class NormalizedPage_V1:
+class NormalizedPage:
     page_number: int
-    blocks: list[NormalizedBlock_V1]
+    blocks: list[NormalizedBlock]
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -321,28 +280,28 @@ class DocumentMetadata:
     instructor: str | None = None
     description: str | None = None
 
-    # def to_json(self) -> dict[str, Any]:
-    #     return {
-    #         "document_id": self.document_id,
-    #         "course": self.course,
-    #         "course_number": self.course_number,
-    #         "source_page": self.source_page,
-    #         "document_title": self.document_title,
-    #         "resource_url": self.resource_url,
-    #         "format": self.format,
-    #         "source_file": self.source_file,
-    #         "type": self.type,
-    #         "instructor": self.instructor,
-    #         "description": self.description,
-    #     }
-
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "document_id": self.document_id,
+            "course": self.course,
+            "course_number": self.course_number,
+            "source_page": self.source_page,
+            "document_title": self.document_title,
+            "resource_url": self.resource_url,
+            "format": self.format,
+            "source_file": self.source_file,
+            "type": self.type,
+            "instructor": self.instructor,
+            "description": self.description,
+        }
+
+    # def to_json(self) -> dict[str, Any]:
+    #     return asdict(self)
 
 @dataclass
 class NormalizedDocument:
     metadata: DocumentMetadata
-    pages: list[NormalizedPage_V1]
+    pages: list[NormalizedPage]
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -353,22 +312,6 @@ class NormalizedDocument:
             ],
         }
 
-
-
-@dataclass
-class NormalizedBlock:
-    block_type: str
-    text: str
-    bbox: tuple[float, float, float, float]
-    metadata: dict[str, Any]
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "block_type": self.block_type,
-            "text": self.text,
-            "bbox": self.bbox,
-            "metadata": self.metadata
-        }
 
 ##############
 ### ERRORS ###

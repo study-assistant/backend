@@ -3,10 +3,13 @@ import json
 
 from workspace import create_course_workspace
 from pdf_extractor import extract_pdf
+from structure_detection import detect_structure
 from text_cleaner import clean_pages
 from text_normalizer import normalize_pages
 from storage import save_json
 from model import CourseProcessingError
+
+from model import DocumentMetadata
 
 def process_course(course_dir: Path) -> None:
     if not course_dir.exists():
@@ -99,7 +102,8 @@ def process_document(
     print(f"\t📄 Processing document: {pdf_path}")
 
     pdf_pages = extract_pdf(pdf_path)
-    cleaned_pages = clean_pages(pdf_pages)
+    structured_pages = detect_structure(pdf_pages)
+    cleaned_pages = clean_pages(structured_pages)
     normalized_pages = normalize_pages(cleaned_pages)
 
     save_processed_document(
@@ -119,22 +123,12 @@ def save_processed_document(
     
     filename = pdf_path.stem + ".json"
     
-    metadata = {
-        "document_id": pdf_path.stem, 
-
-        "course": processed_course_dir.name,
-        "course_number": page_data.get("primary_course_number"),
-        "source_page": page_data.get("page_url"),
-        
-        "document_title": document.get("title"), 
-        "resource_url": document.get("resource_url"),
-        
-        "format": document.get("format"),
-        "source_file": document.get("local_path"),
-        "type": document.get("type"),
-        "instructor": document.get("instructor"),
-        "description": document.get("description"),
-    }
+    metadata = build_document_metadata(
+        pdf_path=pdf_path,
+        processed_course_dir=processed_course_dir,
+        document=document,
+        page_data=page_data,
+    )
     
     data = {
         "metadata": metadata,
@@ -148,3 +142,27 @@ def save_processed_document(
     )
 
     print(f"\t💾 Saved: {output_path}")
+
+
+from pathlib import Path
+
+
+def build_document_metadata(
+    pdf_path: Path,
+    processed_course_dir: Path,
+    document: dict,
+    page_data: dict,
+) -> DocumentMetadata:
+    return DocumentMetadata(
+        document_id=pdf_path.stem,
+        course=processed_course_dir.name,
+        course_number=page_data.get("primary_course_number"),
+        source_page=page_data.get("page_url"),
+        document_title=document.get("title"),
+        resource_url=document.get("resource_url"),
+        format=document["format"],
+        source_file=str(pdf_path),
+        type=document.get("type"),
+        instructor=document.get("instructor"),
+        description=document.get("description"),
+    )

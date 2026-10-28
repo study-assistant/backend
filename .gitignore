@@ -4,6 +4,7 @@ data/raw
 
 # Preprocessed data
 data/preprocessed
+data/processed
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

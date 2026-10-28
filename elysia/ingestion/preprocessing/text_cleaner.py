@@ -5,7 +5,7 @@ from model import (
     BlockType, TableStructure,
     ExtractedSpan,
     StructuredBlock, StructuredPage,
-    CleanedBlock, CleanedPage_V1,
+    CleanedBlock, CleanedPage,
     TextCleaningError,
 )
 
@@ -22,7 +22,7 @@ from model import (
 # Input data is in StructuredPage, text_cleaner needs to manage spatial data and reconstruct text 
 # with indentation for blocks that require that (table, equation, code), clean the text and store it in CleanedPage_V1
 
-def clean_pages(pages: list[StructuredPage],) -> list[CleanedPage_V1]:
+def clean_pages(pages: list[StructuredPage],) -> list[CleanedPage]:
     if not pages:
         return []
 
@@ -65,7 +65,7 @@ def clean_pages(pages: list[StructuredPage],) -> list[CleanedPage_V1]:
             # merged_blocks = _merge_adjacent_blocks(page.blocks)
 
             cleaned_pages.append(
-                CleanedPage_V1(
+                CleanedPage(
                     page_number=page.page_number,
                     blocks=cleaned_blocks,
                 )

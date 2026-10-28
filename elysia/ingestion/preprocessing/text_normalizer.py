@@ -1,8 +1,8 @@
 import unicodedata
 
-from model import CleanedBlock, CleanedPage_V1
+from model import CleanedBlock, CleanedPage
 from model import BlockType, TableStructure
-from model import NormalizedBlock_V1, NormalizedPage_V1, NormalizedDocument, TextNormalizationError
+from model import NormalizedBlock, NormalizedPage, NormalizedDocument, TextNormalizationError
 
 ### TODO
 # normalize newlines 
@@ -13,7 +13,7 @@ from model import NormalizedBlock_V1, NormalizedPage_V1, NormalizedDocument, Tex
 # preserve mathematical notation where possible 
 # preserve code/examples rather than aggressively modifying them where possible 
 
-def normalize_pages(pages: list[CleanedPage_V1]) -> list[NormalizedPage_V1]:
+def normalize_pages(pages: list[CleanedPage]) -> list[NormalizedPage]:
     if not pages:
         return []
 
@@ -33,7 +33,7 @@ def normalize_pages(pages: list[CleanedPage_V1]) -> list[NormalizedPage_V1]:
                 normalized_blocks.append(normalized_block)
 
             normalized_pages.append(
-                NormalizedPage_V1(
+                NormalizedPage(
                     page_number=page.page_number,
                     blocks=normalized_blocks,
                 )
@@ -47,7 +47,7 @@ def normalize_pages(pages: list[CleanedPage_V1]) -> list[NormalizedPage_V1]:
         ) from e
 
 # Normalization rules depend on the type of block.
-def _normalize_block(block: CleanedBlock) -> NormalizedBlock_V1 | None:
+def _normalize_block(block: CleanedBlock) -> NormalizedBlock | None:
     block_type = block.block_type
 
     match block_type:
@@ -56,7 +56,7 @@ def _normalize_block(block: CleanedBlock) -> NormalizedBlock_V1 | None:
             text = _normalize_text(block.text)
             if not text:
                 return None
-            return NormalizedBlock_V1(block_type=block_type, text=text)
+            return NormalizedBlock(block_type=block_type, text=text)
         
         # case BlockType.CODE: # TODO
         #     return 
@@ -72,7 +72,7 @@ def _normalize_block(block: CleanedBlock) -> NormalizedBlock_V1 | None:
             text = block.text
             if not text.strip():
                 return None
-            return NormalizedBlock_V1(block_type=block_type, text=text)
+            return NormalizedBlock(block_type=block_type, text=text)
 
 # normalize Unicode characters 
 # normalize strange PDF characters such as \u0002 
