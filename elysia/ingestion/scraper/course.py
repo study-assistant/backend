@@ -2,7 +2,8 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from utils import extract_primary_course_number
+
+from .utils import extract_primary_course_number
 
 @dataclass
 class Course:

@@ -1,15 +1,15 @@
 from pathlib import Path
 import json
 
-from workspace import create_course_workspace
-from pdf_extractor import extract_pdf
-from structure_detection import detect_structure
-from text_cleaner import clean_pages
-from text_normalizer import normalize_pages
-from storage import save_json
-from model import CourseProcessingError
+from ..common.workspace import PREPROCESSED_DATA_DIR, create_course_workspace
 
-from model import DocumentMetadata
+from .storage import save_json
+
+from .pdf_extractor import extract_pdf
+from .structure_detection import detect_structure
+from .text_cleaner import clean_pages
+from .text_normalizer import normalize_pages
+from .model import DocumentMetadata, CourseProcessingError
 
 def process_course(course_dir: Path) -> None:
     if not course_dir.exists():
@@ -23,7 +23,8 @@ def process_course(course_dir: Path) -> None:
         )
     
     # create data/preprocessed/<course_name>
-    processed_course_dir = create_course_workspace(course_dir.name)
+    paths = create_course_workspace(PREPROCESSED_DATA_DIR, course_dir.name)  # dict
+    processed_course_dir = paths["root"]                                     # Path
 
     pages_dir = course_dir / "pages"
     if not pages_dir.exists():

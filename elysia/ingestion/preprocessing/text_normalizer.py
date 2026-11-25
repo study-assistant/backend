@@ -1,8 +1,8 @@
 import unicodedata
 
-from model import CleanedBlock, CleanedPage
-from model import BlockType, TableStructure
-from model import NormalizedBlock, NormalizedPage, NormalizedDocument, TextNormalizationError
+from .model import CleanedBlock, CleanedPage
+from .model import BlockType, TableStructure
+from .model import NormalizedBlock, NormalizedPage, NormalizedDocument, TextNormalizationError
 
 ### TODO
 # normalize newlines 

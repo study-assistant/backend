@@ -1,21 +1,25 @@
 from pathlib import Path
 from urllib.parse import urljoin
-from utils import filename_from_url
-from workspace import create_course_workspace
-from fetcher import get_soup, download_file
-from html_parser import parse_course_info, parse_course_calendar, parse_course_page, parse_resource_page
-from storage import save_json
-from course import Course
+
+from ..common.workspace import RAW_DATA_DIR, create_course_workspace
+
+from .storage import save_json
+from .utils import filename_from_url
+from .fetcher import get_soup, download_file
+from .html_parser import parse_course_info, parse_course_calendar, parse_course_page, parse_resource_page
+from .course import Course
+
+SCRAPER_SUBDIRS = ["pages", "documents"]
 
 class CoursePipeline:
     def process_course_main_page(self, course_url: str) -> Course:
         course = Course.from_url(course_url)
         try:
             # 1. Create filesystem workspace
-            paths = create_course_workspace(course.course_slug)
-            course.base_path = Path(paths["root"])
-            course.pages_path = Path(paths["pages"])
-            course.documents_path = Path(paths["documents"])
+            paths = create_course_workspace(RAW_DATA_DIR, course.course_slug, SCRAPER_SUBDIRS)  # dict
+            course.base_path = Path(paths["root"])            # Path
+            course.pages_path = Path(paths["pages"])          # Path
+            course.documents_path = Path(paths["documents"])  # Path
             
             # 2. Fetch HTML
             soup = get_soup(course.course_url)

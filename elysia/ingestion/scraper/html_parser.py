@@ -4,11 +4,12 @@ import os
 from bs4 import BeautifulSoup
 from typing import Optional, List, Dict, Any
 from urllib.parse import urljoin, urlparse
-from course import Course
-from config import SCRAPER_VERSION
-from html_parser_utils import extract_single_by_heading, extract_list_by_heading, extract_learning_resource_types, extract_text_with_links, extract_table, normalize_header
-from html_parser_utils import DOCUMENT_EXTENSIONS, create_document, get_file_extension, is_resource_page, is_direct_file
-from utils import clean_text
+
+from .course import Course
+from .config import SCRAPER_VERSION
+from .html_parser_utils import extract_single_by_heading, extract_list_by_heading, extract_learning_resource_types, extract_text_with_links, extract_table, normalize_header
+from .html_parser_utils import DOCUMENT_EXTENSIONS, create_document, get_file_extension, is_resource_page, is_direct_file
+from .utils import clean_text
 
 BASE_URL = "https://ocw.mit.edu"
 

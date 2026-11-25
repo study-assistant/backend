@@ -1,7 +1,7 @@
 import re
 from collections import Counter
 
-from model import (
+from .model import (
     ExtractedBlock,ExtractedPage,
     BlockType, StructuredBlock, StructuredPage,
     StructureDetectionError

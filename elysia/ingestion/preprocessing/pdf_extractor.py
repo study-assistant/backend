@@ -1,7 +1,7 @@
 from pathlib import Path
 import pymupdf
 
-from model import (
+from .model import (
     ExtractedSpan, ExtractedLine, ExtractedBlock, 
     ExtractedPage,
     PDFExtractionError,

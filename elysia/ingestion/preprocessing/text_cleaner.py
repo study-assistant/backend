@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-from model import (
+from .model import (
     BlockType, TableStructure,
     ExtractedSpan,
     StructuredBlock, StructuredPage,

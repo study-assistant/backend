@@ -1,11 +1,11 @@
-from workspace import RAW_DATA_DIR
-from workspace import validate_raw_data_directory, create_preprocessing_workspace
-from course_processor import process_course
+from ..common.workspace import RAW_DATA_DIR, PREPROCESSED_DATA_DIR
+from ..common.workspace import require_dir, ensure_dir
+
+from .course_processor import process_course
 
 def run():
-    validate_raw_data_directory()
-    create_preprocessing_workspace()
-
+    require_dir(RAW_DATA_DIR)
+    ensure_dir(PREPROCESSED_DATA_DIR) # ensure data/preprocessed exists before writing into it
     course_dirs = [
         path for path in RAW_DATA_DIR.iterdir()
         if path.is_dir()

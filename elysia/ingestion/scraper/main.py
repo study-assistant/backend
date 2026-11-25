@@ -7,10 +7,11 @@
 # For the beginning version, we will dowload only written format of materials as are text,  #
 # pdfs or transcripts for video (if available).                                             #
 #############################################################################################
-from config import LINKS_FILE
-from input import read_course_links
-from course_pipeline import CoursePipeline
 import time
+
+from .config import LINKS_FILE
+from .input import read_course_links
+from .course_pipeline import CoursePipeline
 
 def format_duration(seconds: float) -> str:
     minutes, seconds = divmod(int(seconds), 60)
