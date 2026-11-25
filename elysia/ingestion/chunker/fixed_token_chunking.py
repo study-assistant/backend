@@ -1,6 +1,6 @@
 from transformers import PreTrainedTokenizerFast
 
-from ..model import (
+from ..preprocessing.model import  (
     NormalizedPage,
     DocumentMetadata,
 )

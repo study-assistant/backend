@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..model import BlockType, NormalizedBlock, DocumentMetadata
+from ..preprocessing.model import BlockType, NormalizedBlock, DocumentMetadata
 
 
 ### Fixed token chunking models

@@ -1,18 +1,15 @@
-import json
 from pathlib import Path
 
-from ..model import (
+from ..common.storage import load_json
+from ..preprocessing.model import (
     BlockType,
     DocumentMetadata,
     NormalizedBlock,
     NormalizedPage,
 )
 
-
 def load_normalized_document(file_path: Path):
-
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
+    data = load_json(file_path)
 
     # Convert metadata
     metadata = DocumentMetadata(
