@@ -19,10 +19,9 @@ Please respect the [MIT OpenCourseWare Terms of Use](https://ocw.mit.edu/terms/)
 
 1. Add course URLs to `links.csv`
 2. Make sure Python 3.10+ is installed along with required packages
-3. Run:
-
+3. Run as a module from `backend/backend/elysia/`:
 ```bash
-python main.py
+python -m ingestion.scraper.main
 ```
 
 ---
@@ -59,8 +58,6 @@ For each course URL provided, the scraper:
 | `input.py` | Input handling | `read_course_links` |
 | `utils.py` | Shared helpers | `extract_primary_course_number`, `clean_text`, `safe_filename`, `slugify`, `filename_from_url` |
 | `fetcher.py` | HTTP fetching & downloads | `get_soup`, `download_file` |
-| `storage.py` | Persistence layer | `save_json`, `save_txt` |
-| `workspace.py` | Filesystem workspace management | `course_slug_from_url`, `create_course_workspace` |
 | `html_parser.py` | HTML → structured data | `parse_sidebar_tree`, `parse_course_info`, `parse_course_calendar`, `parse_course_page`, `parse_resource_page` etc. |
 | `html_parser_utils.py` | HTML parsing utilities | `extract_text_with_links`, `extract_table`, `extract_list_by_heading`, `extract_learning_resource_types`, `DOCUMENT_EXTENSIONS` etc.|
 | `course_pipeline.py` | High-level workflow | `process_course_main_page`, `process_course_calendar`, `process_all_pages` |

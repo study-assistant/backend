@@ -2,8 +2,7 @@ from pathlib import Path
 import json
 
 from ..common.workspace import PREPROCESSED_DATA_DIR, create_course_workspace
-
-from .storage import save_json
+from ..common.storage import save_json, load_json, StorageError
 
 from .pdf_extractor import extract_pdf
 from .structure_detection import detect_structure
@@ -48,8 +47,7 @@ def process_course(course_dir: Path) -> None:
 def process_page(page_file: Path, processed_course_dir: Path):
     print(f"\t📄 Processing page: {page_file.name}")
     try:
-        with page_file.open("r", encoding="utf-8") as file:
-            page_data = json.load(file)
+        page_data = load_json(page_file)
 
     except json.JSONDecodeError as e:
         print(
@@ -58,7 +56,7 @@ def process_page(page_file: Path, processed_course_dir: Path):
         )
         return
 
-    except OSError as e:
+    except StorageError as e:
         print(
             f"\t⚠️ Could not read page, skipping: {page_file.name}"
             f"\n\t   {e}"

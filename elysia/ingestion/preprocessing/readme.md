@@ -21,6 +21,15 @@ The preprocessing stage preserves important information from the original PDF, s
 This information can later be used to create better chunks and improve retrieval quality.
 
 ---
+## Running the Preprocessing Module
+
+1. Make sure Python 3.10+ is installed along with required packages
+2. Run as a module from `backend/backend/elysia/`:
+```bash
+python -m ingestion.preprocessing.pipeline
+```
+
+---
 
 ## Pipeline Overview
 
@@ -67,8 +76,6 @@ The output of this module is a collection of structured and normalized documents
 ```
 preprocessing/
 │
-├── workspace.py
-├── storage.py
 ├── model.py
 ├── pdf_extractor.py
 ├── structure_detection.py
@@ -84,8 +91,6 @@ preprocessing/
 
 | Component                          | Responsibility          |
 | ---------------------------------- | ----------------------- |
-| `workspace.py`                     | Paths and directories   |
-| `storage.py`                       | Persistence layer       |
 | `model.py`                         | Data models and processing errors  |
 | `pdf_extractor.py`                 | PDF → structured raw representation          |
 | `structure_detection.py`                 | Detect document structure          |
@@ -100,23 +105,6 @@ preprocessing/
 | `embedding_generator.py` *(later)* | Chunks → vectors        |
 | `weaviate_uploader.py` *(later)*   | Vectors → Weaviate      |
 -->
-
-### `workspace.py`
-
-Responsibilities:
-
-* Filesystem workspace management
-* create directories when necessary
-* provide paths to the other components
-
----
-
-### `storage.py`
-
-Responsibilities:
-
-* Persistence layer
-* save_json(data: dict, filename: str, folder: str)
 
 ---
 

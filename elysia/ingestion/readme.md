@@ -85,15 +85,12 @@ Relative imports (`from .workspace import …`, `from ..common.workspace import 
 
 ---
 
-
 ## Conventions
 
 - **Shared paths & errors** live in `common/workspace.py` (`WorkspaceError`,  `ensure_dir`, `require_dir`, `create_course_workspace`, all `*_DATA_DIR`  constants). Stages never redefine these.
 - **Course identity** is the course slug (`6-006-introduction-to-algorithms-fall-2011`), validated once in `common.workspace._validate_course_slug` and used as the single path component under every data root.
-
-- **Stage I/O** lives in each stage's `storage.py` (e.g. `save_json`, `load_json`). ### TODO
+- **Stage I/O** lives in `common/storage.py` (e.g. `save_json`, `load_json`).
 - **Stage data types** live in each stage's `model.py`.
-
 
 ---
 

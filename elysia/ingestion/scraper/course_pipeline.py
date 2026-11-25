@@ -2,8 +2,8 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 from ..common.workspace import RAW_DATA_DIR, create_course_workspace
+from ..common.storage import save_json
 
-from .storage import save_json
 from .utils import filename_from_url
 from .fetcher import get_soup, download_file
 from .html_parser import parse_course_info, parse_course_calendar, parse_course_page, parse_resource_page
